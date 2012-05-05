@@ -1,4 +1,4 @@
-# Class: nova::volume:iscsi
+# Class: nova::volume::iscsi
 #
 # iscsi is the default volume driver for OpenStack. 
 #

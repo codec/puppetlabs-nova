@@ -202,7 +202,7 @@ node /controller/ {
   }
 
   class {'nova::volume::iscsi':
-    config_hash => { 'pv' => '/dev/m1',
+    config_hash => { 'pv' => '/dev/md1',
   }
 
   ######## Horizon ########

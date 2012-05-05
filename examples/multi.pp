@@ -197,6 +197,14 @@ node /controller/ {
     enabled => true
   }
 
+  class { 'nova::volume': 
+    enabled => true,
+  }
+
+  class {'nova::volume::iscsi':
+    config_hash => { 'pv' => '/dev/m1',
+  }
+
   ######## Horizon ########
 
   class { 'memcached':

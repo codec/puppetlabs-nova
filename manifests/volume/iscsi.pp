@@ -11,6 +11,9 @@
 # [volume_group] Name of the volume group to use.
 #  Optional. Defaults to 'nova-volumes' - the OpenStack default.
 #
+# [iscsi_helper] Name of the iscsi helper to use.
+#  Optional. Defaults to 'tgtadm' - the OpenStack default. 
+#
 # [iscsi_ip_prefix] Sets the equivalent OpenStack nova.conf option
 #   Optional. Defaults to undef.
 # 
@@ -45,6 +48,7 @@
 class nova::volume::iscsi (
   $real_lvm        = true,
   $volume_group    = 'nova-volumes',
+  $iscsi_helper    = 'tgtadm',
   $iscsi_ip_prefix = undef,
   $config_hash
 ) {
@@ -81,16 +85,25 @@ class nova::volume::iscsi (
     nova_config { 'iscsi_ip_prefix': value => $iscsi_ip_prefix }
   }
 
-  package { 'tgt':
-    name   => $::nova::params::tgt_package_name,
-    ensure => present,
-  }
-  # TODO is this fedora specific?
-  service {'tgtd':
-    name     => $::nova::params::tgt_service_name,
-    provider => $::nova::params::special_service_provider,
-    ensure   => $service_ensure,
-    enable   => $enabled,
-    require  => [Nova::Generic_service['volume'], Package['tgt']],
+  case $iscsi_helper {
+    'tgtadm': {
+      package { 'tgt':
+        name   => $::nova::params::tgt_package_name,
+        ensure => present,
+      }
+      service { 'tgtd':
+        name     => $::nova::params::tgt_service_name,
+        provider => $::nova::params::special_service_provider,
+        ensure   => running,
+        enable   => true,
+        require  => [Nova::Generic_service['volume'], Package['tgt']],
+      }
+      # This is the default, but might as well be verbose
+      nova_config { 'iscsi_helper': value => 'tgtadm' }
+    }
+
+    default: {
+        fail("Unsupported iscsi helper: ${iscsi_helper}. The supported iscsi helper is tgtadm.")
+    }
   }
 }
